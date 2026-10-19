@@ -148,8 +148,13 @@ namespace piko::modules
         }
 
         const std::filesystem::path audio_path = resolve_stage_audio_path( app );
+
+        // Custom songs take result cues from their asset stage bank.
+        const std::int32_t fallback_stage_number =
+            load_data_.stage.custom_song ? load_data_.stage.asset_stage_number : load_data_.stage.stage_number;
+
         const std::filesystem::path fallback_audio_path =
-            app.game_data().runtime_stage_audio( load_data_.stage.stage_number,
+            app.game_data().runtime_stage_audio( fallback_stage_number,
                 gamedata::ChartStyle::GitarooMan,
                 load_data_.stage.chc_path.filename().string() );
 

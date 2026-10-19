@@ -412,7 +412,8 @@ namespace piko::modules
             hud_phase_change_seconds_ += static_cast<float>( std::max( 0.0, delta_seconds ) );
         }
 
-        if( !runtime_.paused() && !stage_result_active_ && !tutorial_session() )
+        if( !runtime_.paused() && !stage_result_active_ && !tutorial_session() &&
+            runtime_.ruleset() == gamedata::StageRuleset::Retail )
         {
             runtime::stage::update_phase_announcement( phase_announcement_,
                 current_hud_phase,
@@ -541,6 +542,12 @@ namespace piko::modules
                     app.change_module( std::make_unique<MainMenuModule>() );
                 }
 
+                return;
+            }
+
+            if( load_data_.stage.custom_song )
+            {
+                return_to_stage_select( app );
                 return;
             }
 

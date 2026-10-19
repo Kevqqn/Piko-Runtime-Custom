@@ -184,6 +184,12 @@ namespace piko::modules
 
     void StageModule::return_to_stage_select( App &app )
     {
+        if( load_data_.stage.custom_song )
+        {
+            app.change_module( std::make_unique<MainMenuModule>() );
+            return;
+        }
+
         if( tutorial_session() )
         {
             const auto category = load_data_.stage.tutorial_difficulty == gamedata::TutorialDifficulty::Easy

@@ -23,6 +23,13 @@ namespace piko::gamedata
         Normal
     };
 
+    // Free: one health meter, phrase hits heal, no enemy or phases. Used by custom songs.
+    enum class StageRuleset
+    {
+        Retail,
+        Free
+    };
+
     struct PlayableStageEntry
     {
         std::int32_t page_id = 0;
@@ -49,6 +56,12 @@ namespace piko::gamedata
         bool chc_exists = false;
         bool using_runtime_chart = false;
         bool ssq_exists = false;
+
+        StageRuleset ruleset = StageRuleset::Retail;
+        bool custom_song = false;
+        std::string custom_song_id;
+        std::filesystem::path custom_song_folder;
+        std::int32_t asset_stage_number = -1;
 
         std::string chart_variant;
         std::string bonus_source;

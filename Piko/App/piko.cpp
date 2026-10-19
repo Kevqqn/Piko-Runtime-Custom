@@ -2,9 +2,12 @@
 #include "piko.hpp"
 #include "Localization/Language.hpp"
 #include "Utils/FileUtil.hpp"
+#include "Utils/StrUtil.hpp"
 
 #include <GameData/AlbumFlow.hpp>
+#include <GameData/CustomSongCatalog.hpp>
 #include <Modules/Import/ImportModule.hpp>
+#include <Modules/Loading/LoadingModule.hpp>
 #include <Modules/MainMenu/MainMenuModule.hpp>
 #include <Modules/Movie/MovieModule.hpp>
 #include <Modules/PikoModule.hpp>
@@ -86,7 +89,54 @@ namespace piko
         shutdown();
     }
 
-    bool App::initialize( bool force_runtime_import )
+    std::unique_ptr<modules::PikoModule> App::make_custom_song_launch_module( const CustomSongLaunch &launch ) const
+    {
+        std::filesystem::path folder = std::filesystem::absolute( launch.folder ).lexically_normal();
+
+        if( !utils::directory( folder ) )
+        {
+            folder = gamedata::custom_songs_root( game_data_root_ ) / launch.folder;
+        }
+
+        try
+        {
+            const std::vector<gamedata::PlayableStageEntry> entries = gamedata::load_custom_song_entries( folder );
+            auto selected = entries.begin();
+
+            if( !launch.chart.empty() )
+            {
+                selected = std::find_if( entries.begin(),
+                    entries.end(),
+                    [ & ]( const gamedata::PlayableStageEntry &entry )
+                    {
+                        return utils::lowercase_ascii( entry.chart_variant ) == utils::lowercase_ascii( launch.chart );
+                    } );
+
+                if( selected == entries.end() )
+                {
+                    std::cerr << "[Piko Custom Song] Chart \"" << launch.chart << "\" not found, using the first\n";
+                    selected = entries.begin();
+                }
+            }
+
+            std::cout << "[Piko Custom Song] Launching " << selected->short_name << '\n';
+
+            modules::LoadingTask task = modules::make_stage_loading_task( *selected,
+                []()
+                {
+                    return std::make_unique<modules::MainMenuModule>();
+                } );
+
+            return std::make_unique<modules::LoadingModule>( std::move( task ) );
+        }
+        catch( const std::exception &e )
+        {
+            std::cerr << "[Piko Custom Song] " << e.what() << '\n';
+            return nullptr;
+        }
+    }
+
+    bool App::initialize( bool force_runtime_import, const std::optional<CustomSongLaunch> &custom_song )
     {
         if( !initialize_sdl() )
         {
@@ -191,12 +241,17 @@ namespace piko
         }
         else
         {
+            if( custom_song.has_value() )
+            {
+                current_module_ = make_custom_song_launch_module( *custom_song );
+            }
+
             try
             {
                 const std::optional<std::int32_t> opening_page =
                     settings_.play_movies ? gamedata::album_opening_movie_page( game_data_root_ ) : std::nullopt;
 
-                if( opening_page.has_value() )
+                if( opening_page.has_value() && !current_module_ )
                 {
                     const gamedata::AlbumFlowTarget target =
                         gamedata::resolve_album_flow_target( game_data_root_, *opening_page, settings_.chart_style );

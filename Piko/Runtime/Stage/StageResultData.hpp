@@ -21,6 +21,7 @@ namespace piko::runtime::stage
         std::uint32_t score = 0;
         std::array<std::uint32_t, utils::enum_index( StageResultGrade::Count )> judgement_counts{};
         float final_energy = 0.0f;
+        std::uint32_t max_combo = 0;
         bool won = false;
     };
 }

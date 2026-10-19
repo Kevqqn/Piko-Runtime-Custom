@@ -35,7 +35,7 @@ namespace piko::modules
     {
         camera_ranges_.clear();
 
-        if( stage.chc_exists && !stage.chc_path.empty() )
+        if( stage.chc_exists && !stage.chc_path.empty() && !stage.custom_song )
         {
             try
             {

@@ -14,11 +14,19 @@
 #include <Modules/PikoModule.hpp>
 #include <Rendering/Renderer.hpp>
 
+#include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace piko
 {
+    struct CustomSongLaunch
+    {
+        std::filesystem::path folder;
+        std::string chart;
+    };
+
     class App
     {
     public:
@@ -28,7 +36,10 @@ namespace piko
         App( const App & ) = delete;
         App &operator=( const App & ) = delete;
 
-        bool initialize( bool force_runtime_import = false );
+        bool initialize( bool force_runtime_import = false,
+            const std::optional<CustomSongLaunch> &custom_song = std::nullopt );
+
+        static std::filesystem::path application_root_path();
         void run();
         void shutdown();
 
@@ -80,7 +91,8 @@ namespace piko
         void begin_imgui_frame();
         void render_imgui();
         void log_runtime_summary() const;
-        static std::filesystem::path application_root_path();
+        [[nodiscard]] std::unique_ptr<modules::PikoModule> make_custom_song_launch_module(
+            const CustomSongLaunch &launch ) const;
         static bool imgui_wants_keyboard_event( const SDL_Event &event );
         static bool imgui_wants_mouse_event( const SDL_Event &event );
 

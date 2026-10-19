@@ -18,6 +18,7 @@ int main( int argc, char **argv )
 {
     bool force_runtime_import = false;
     std::optional<std::filesystem::path> inspect_gltf_path;
+    std::optional<piko::CustomSongLaunch> custom_song;
 
     for( std::int32_t index = 1; index < argc; ++index )
     {
@@ -26,6 +27,32 @@ int main( int argc, char **argv )
         if( argument == "--import-runtime" )
         {
             force_runtime_import = true;
+        }
+        else if( argument == "--custom-song" || argument == "--custom-chart" )
+        {
+            if( index + 1 >= argc )
+            {
+                std::cerr << argument << " requires a value\n";
+                return 1;
+            }
+
+            if( !custom_song.has_value() )
+            {
+                custom_song.emplace();
+            }
+
+            if( argument == "--custom-chart" )
+            {
+                custom_song->chart = argv[ ++index ];
+            }
+            else
+            {
+#if defined( _WIN32 ) && !defined( _DEBUG )
+                custom_song->folder = piko::utils::path_from_utf8( argv[ ++index ] );
+#else
+                custom_song->folder = std::filesystem::path( argv[ ++index ] );
+#endif
+            }
         }
         else if( argument == "--inspect-gltf" )
         {
@@ -79,7 +106,13 @@ int main( int argc, char **argv )
 
         piko::App app;
 
-        if( !app.initialize( force_runtime_import ) )
+        if( custom_song.has_value() && custom_song->folder.empty() )
+        {
+            std::cerr << "--custom-chart requires --custom-song\n";
+            return 1;
+        }
+
+        if( !app.initialize( force_runtime_import, custom_song ) )
         {
             return 1;
         }

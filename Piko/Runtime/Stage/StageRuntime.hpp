@@ -267,6 +267,7 @@ namespace piko::runtime::stage
         bool filter_charts_by_time = false;
         bool duet_stage = false;
         StageDuetSide duet_side = StageDuetSide::Auto;
+        gamedata::StageRuleset ruleset = gamedata::StageRuleset::Retail;
 
         float transition_route_lock_fraction = 0.5f;
 
@@ -325,6 +326,11 @@ namespace piko::runtime::stage
             return chart_style_;
         }
 
+        [[nodiscard]] gamedata::StageRuleset ruleset() const
+        {
+            return config_.ruleset;
+        }
+
         StageRuntime();
 
         void initialize( const gamedata::PlayableStageEntry &stage,
@@ -365,6 +371,7 @@ namespace piko::runtime::stage
 
         [[nodiscard]] const StageRuntimeState &state() const;
         [[nodiscard]] std::uint32_t score() const;
+        [[nodiscard]] std::uint32_t combo() const;
         [[nodiscard]] StageResultData result_data( bool won ) const;
         [[nodiscard]] const StageTransitionPlan &transition_plan() const;
         [[nodiscard]] StageVisualState visual_state() const;
@@ -686,6 +693,8 @@ namespace piko::runtime::stage
 
         StageRuntimeState state_{};
         std::uint32_t score_ = 0;
+        std::uint32_t combo_ = 0;
+        std::uint32_t max_combo_ = 0;
         std::array<std::uint32_t, utils::enum_index( StageResultGrade::Count )> result_judgement_counts_{};
 
         bool paused_ = false;

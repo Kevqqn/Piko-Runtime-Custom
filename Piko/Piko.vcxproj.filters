@@ -147,6 +147,12 @@
     <Filter Include="Source Files\FileTypes\CHC">
       <UniqueIdentifier>{c3cd1fa7-42f1-42b3-ab65-88102bca3586}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FileTypes\CustomSong">
+      <UniqueIdentifier>{7d1c2b4e-5a3f-4e8b-9c61-2f0a8d4e6b17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FileTypes\CustomSong">
+      <UniqueIdentifier>{e2a94f30-8b5c-4d7e-a1f6-3c9b0e5d7a28}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Runtime">
       <UniqueIdentifier>{9ffefab3-0cd3-4dc6-84f7-d2337c7a03e7}</UniqueIdentifier>
     </Filter>
@@ -212,6 +218,9 @@
     <ClCompile Include="FileTypes\CHC\CHCJson.cpp">
       <Filter>Source Files\FileTypes\CHC</Filter>
     </ClCompile>
+    <ClCompile Include="FileTypes\CustomSong\CustomSong.cpp">
+      <Filter>Source Files\FileTypes\CustomSong</Filter>
+    </ClCompile>
     <ClCompile Include="FileTypes\IMC\IMC.cpp">
       <Filter>Source Files\FileTypes\IMC</Filter>
     </ClCompile>
@@ -231,6 +240,12 @@
       <Filter>Source Files\GameData</Filter>
     </ClCompile>
     <ClCompile Include="GameData\AlbumFlow.cpp">
+      <Filter>Source Files\GameData</Filter>
+    </ClCompile>
+    <ClCompile Include="GameData\CustomSongAudio.cpp">
+      <Filter>Source Files\GameData</Filter>
+    </ClCompile>
+    <ClCompile Include="GameData\CustomSongCatalog.cpp">
       <Filter>Source Files\GameData</Filter>
     </ClCompile>
     <ClCompile Include="FileTypes\XGM\XGM.cpp">
@@ -520,6 +535,9 @@
     <ClInclude Include="FileTypes\CHC\CHCJson.hpp">
       <Filter>Header Files\FileTypes\CHC</Filter>
     </ClInclude>
+    <ClInclude Include="FileTypes\CustomSong\CustomSong.hpp">
+      <Filter>Header Files\FileTypes\CustomSong</Filter>
+    </ClInclude>
     <ClInclude Include="FileTypes\IMC\IMC.hpp">
       <Filter>Header Files\FileTypes\IMC</Filter>
     </ClInclude>
@@ -551,6 +569,12 @@
       <Filter>Header Files\GameData</Filter>
     </ClInclude>
     <ClInclude Include="GameData\AlbumFlow.hpp">
+      <Filter>Header Files\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="GameData\CustomSongAudio.hpp">
+      <Filter>Header Files\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="GameData\CustomSongCatalog.hpp">
       <Filter>Header Files\GameData</Filter>
     </ClInclude>
     <ClInclude Include="Managers\AudioManager.hpp">

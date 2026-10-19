@@ -186,6 +186,7 @@
     <ClCompile Include="FileTypes\AlbumDef\AlbumDef.cpp" />
     <ClCompile Include="FileTypes\CHC\CHC.cpp" />
     <ClCompile Include="FileTypes\CHC\CHCJson.cpp" />
+    <ClCompile Include="FileTypes\CustomSong\CustomSong.cpp" />
     <ClCompile Include="FileTypes\IMC\IMC.cpp" />
     <ClCompile Include="FileTypes\GMO\GMO.cpp" />
     <ClCompile Include="GameData\GameDataRoot.cpp" />
@@ -193,6 +194,8 @@
     <ClCompile Include="GameData\StageCatalog.cpp" />
     <ClCompile Include="GameData\RuntimeImporter.cpp" />
     <ClCompile Include="GameData\AlbumFlow.cpp" />
+    <ClCompile Include="GameData\CustomSongAudio.cpp" />
+    <ClCompile Include="GameData\CustomSongCatalog.cpp" />
     <ClCompile Include="FileTypes\XGM\XGM.cpp" />
     <ClCompile Include="FileTypes\XG\XG.cpp" />
     <ClCompile Include="FileTypes\SSQ\SSQ.cpp" />
@@ -284,6 +287,7 @@
     <ClInclude Include="FileTypes\AlbumDef\AlbumDef.hpp" />
     <ClInclude Include="FileTypes\CHC\CHC.hpp" />
     <ClInclude Include="FileTypes\CHC\CHCJson.hpp" />
+    <ClInclude Include="FileTypes\CustomSong\CustomSong.hpp" />
     <ClInclude Include="FileTypes\IMC\IMC.hpp" />
     <ClInclude Include="FileTypes\GMO\GMO.hpp" />
     <ClInclude Include="FileTypes\XGM\XGM.hpp" />
@@ -295,6 +299,8 @@
     <ClInclude Include="GameData\StageCatalog.hpp" />
     <ClInclude Include="GameData\RuntimeImporter.hpp" />
     <ClInclude Include="GameData\AlbumFlow.hpp" />
+    <ClInclude Include="GameData\CustomSongAudio.hpp" />
+    <ClInclude Include="GameData\CustomSongCatalog.hpp" />
     <ClInclude Include="Managers\AudioManager.hpp" />
     <ClInclude Include="Managers\FrameStats.hpp" />
     <ClInclude Include="Managers\GameSettings.hpp" />

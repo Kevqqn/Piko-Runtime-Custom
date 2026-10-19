@@ -456,23 +456,26 @@ namespace piko::modules
                     33.0f,
                     40.0f );
 
-                draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_left_cap,
-                    359.0f,
-                    8.0f,
-                    33.0f,
-                    40.0f );
+                if( model.sides[ 1 ].active )
+                {
+                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_left_cap,
+                        359.0f,
+                        8.0f,
+                        33.0f,
+                        40.0f );
 
-                draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_middle,
-                    392.0f,
-                    8.0f,
-                    200.0f,
-                    40.0f );
+                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_middle,
+                        392.0f,
+                        8.0f,
+                        200.0f,
+                        40.0f );
 
-                draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_right_cap,
-                    592.0f,
-                    8.0f,
-                    33.0f,
-                    40.0f );
+                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::energy_housing_right_cap,
+                        592.0f,
+                        8.0f,
+                        33.0f,
+                        40.0f );
+                }
 
                 const float left_ratio = model.sides[ 0 ].active ? model.sides[ 0 ].energy_ratio : 0.0f;
                 const float right_ratio = model.sides[ 1 ].active ? model.sides[ 1 ].energy_ratio : 0.0f;
@@ -616,73 +619,77 @@ namespace piko::modules
                 draw_energy_warning( 0u, 150.0f );
                 draw_energy_warning( 1u, 500.0f );
 
-                if( load_data_.stage.portable_visuals )
+                // Free songs have no phases.
+                if( runtime_.ruleset() == gamedata::StageRuleset::Retail )
                 {
-                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::portable_phase_background,
-                        510.0f,
-                        356.0f,
-                        116.0f,
-                        84.0f );
-
-                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::portable_phase_puma,
-                        550.0f,
-                        351.0f,
-                        68.0f,
-                        66.0f );
-                }
-                else
-                {
-                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::phase_background,
-                        510.0f,
-                        356.0f,
-                        116.0f,
-                        84.0f );
-
-                    draw_logical_atlas( runtime::stage::gameplay_interface_atlas::phase_puma,
-                        550.0f,
-                        351.0f,
-                        68.0f,
-                        62.0f );
-                }
-
-                float exit_progress = std::clamp( hud_phase_change_seconds_ / phase_exit_seconds_, 0.0f, 1.0f );
-
-                if( hud_outgoing_phase_ != runtime::stage::StageActionMode::Unknown && exit_progress < 1.0f )
-                {
-                    const auto source = runtime::stage::retail_phase_source( hud_outgoing_phase_ );
-                    const float y = 408.5f + phase_slide_distance_ * exit_progress;
-                    draw_atlas( source,
-                        logical_rect( 509.5f, y, 121.0f, 27.0f ),
-                        rendering::Color{ 1.0f, 1.0f, 1.0f, 1.0f - exit_progress } );
-                }
-
-                const float enter_delay =
-                    hud_outgoing_phase_ == runtime::stage::StageActionMode::Unknown ? 0.0f : phase_exit_seconds_;
-
-                const float enter_seconds = hud_phase_change_seconds_ - enter_delay;
-
-                if( enter_seconds >= 0.0f )
-                {
-                    // Bring the phase in.
-                    const auto animation = runtime::stage::retail_phase_animation( enter_seconds );
-
-                    auto source = runtime::stage::retail_phase_source( model.phase );
-                    const float phase_w = 121.0f * animation.width_scale;
-                    const float phase_h = 27.0f * std::abs( animation.height_scale );
-
-                    if( animation.height_scale < 0.0f )
+                    if( load_data_.stage.portable_visuals )
                     {
-                        source.y += source.h;
+                        draw_logical_atlas( runtime::stage::gameplay_interface_atlas::portable_phase_background,
+                            510.0f,
+                            356.0f,
+                            116.0f,
+                            84.0f );
 
-                        source.h = -source.h;
+                        draw_logical_atlas( runtime::stage::gameplay_interface_atlas::portable_phase_puma,
+                            550.0f,
+                            351.0f,
+                            68.0f,
+                            66.0f );
+                    }
+                    else
+                    {
+                        draw_logical_atlas( runtime::stage::gameplay_interface_atlas::phase_background,
+                            510.0f,
+                            356.0f,
+                            116.0f,
+                            84.0f );
+
+                        draw_logical_atlas( runtime::stage::gameplay_interface_atlas::phase_puma,
+                            550.0f,
+                            351.0f,
+                            68.0f,
+                            62.0f );
                     }
 
-                    draw_atlas( source,
-                        logical_rect( 570.0f - phase_w * 0.5f,
-                            422.0f + animation.offset_y - phase_h * 0.5f,
-                            phase_w,
-                            phase_h ),
-                        rendering::Color{ 1.0f, 1.0f, 1.0f, animation.alpha } );
+                    float exit_progress = std::clamp( hud_phase_change_seconds_ / phase_exit_seconds_, 0.0f, 1.0f );
+
+                    if( hud_outgoing_phase_ != runtime::stage::StageActionMode::Unknown && exit_progress < 1.0f )
+                    {
+                        const auto source = runtime::stage::retail_phase_source( hud_outgoing_phase_ );
+                        const float y = 408.5f + phase_slide_distance_ * exit_progress;
+                        draw_atlas( source,
+                            logical_rect( 509.5f, y, 121.0f, 27.0f ),
+                            rendering::Color{ 1.0f, 1.0f, 1.0f, 1.0f - exit_progress } );
+                    }
+
+                    const float enter_delay =
+                        hud_outgoing_phase_ == runtime::stage::StageActionMode::Unknown ? 0.0f : phase_exit_seconds_;
+
+                    const float enter_seconds = hud_phase_change_seconds_ - enter_delay;
+
+                    if( enter_seconds >= 0.0f )
+                    {
+                        // Bring the phase in.
+                        const auto animation = runtime::stage::retail_phase_animation( enter_seconds );
+
+                        auto source = runtime::stage::retail_phase_source( model.phase );
+                        const float phase_w = 121.0f * animation.width_scale;
+                        const float phase_h = 27.0f * std::abs( animation.height_scale );
+
+                        if( animation.height_scale < 0.0f )
+                        {
+                            source.y += source.h;
+
+                            source.h = -source.h;
+                        }
+
+                        draw_atlas( source,
+                            logical_rect( 570.0f - phase_w * 0.5f,
+                                422.0f + animation.offset_y - phase_h * 0.5f,
+                                phase_w,
+                                phase_h ),
+                            rendering::Color{ 1.0f, 1.0f, 1.0f, animation.alpha } );
+                    }
                 }
             }
             else

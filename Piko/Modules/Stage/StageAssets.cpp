@@ -223,8 +223,12 @@ namespace piko::modules
             app.settings().gameplay_visual,
             true );
 
+        // Custom songs borrow the HUD skin of their asset stage.
+        const std::int32_t hud_stage_number =
+            load_data_.stage.custom_song ? load_data_.stage.asset_stage_number : load_data_.stage.stage_number;
+
         char stage_group[ 16 ]{};
-        std::snprintf( stage_group, sizeof( stage_group ), "STAGE%02d", std::max( 0, load_data_.stage.stage_number ) );
+        std::snprintf( stage_group, sizeof( stage_group ), "STAGE%02d", std::max( 0, hud_stage_number ) );
 
         for( std::size_t index = 0; index < phase_announcement_textures_.size(); ++index )
         {
@@ -316,7 +320,7 @@ namespace piko::modules
         }
 
         const std::filesystem::path converted_itfc =
-            app.game_data().runtime_stage_texture( load_data_.stage.stage_number, stage_group, "ITFC.png" );
+            app.game_data().runtime_stage_texture( hud_stage_number, stage_group, "ITFC.png" );
 
         if( converted_itfc.empty() )
         {

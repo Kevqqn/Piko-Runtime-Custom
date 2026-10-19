@@ -5,6 +5,8 @@
 
 #include "App/piko.hpp"
 #include "FileTypes/CHC/CHCJson.hpp"
+#include "FileTypes/CustomSong/CustomSong.hpp"
+#include "GameData/CustomSongAudio.hpp"
 #include "Managers/InputManager.hpp"
 #include "Modules/Stage/StageModule.hpp"
 #include "Rendering/Renderer.hpp"
@@ -18,10 +20,54 @@
 #include <exception>
 #include <filesystem>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace piko::modules
 {
+    void load_custom_song_stage( StageLoadData &load_data, LoadingProgress &progress )
+    {
+        progress.set_progress( 0.08f );
+
+        const filetypes::custom_song::SongInfo info =
+            filetypes::custom_song::load_song_info( load_data.stage.custom_song_folder );
+
+        if( progress.cancel_requested() )
+        {
+            return;
+        }
+
+        progress.set_progress( 0.2f );
+
+        const gamedata::PreparedCustomSongAudio audio =
+            gamedata::prepare_custom_song_audio( info, App::application_root_path() );
+
+        if( progress.cancel_requested() )
+        {
+            return;
+        }
+
+        progress.set_progress( 0.8f );
+
+        const filetypes::custom_song::ChartEntry chart{ load_data.stage.chart_variant, load_data.stage.chc_path };
+        std::vector<std::string> warnings;
+        load_data.song = filetypes::custom_song::load_song( info, chart, warnings, audio.length_ms() );
+
+        for( const std::string &warning : warnings )
+        {
+            std::cerr << "[Piko Custom Song] " << warning << '\n';
+        }
+
+        load_data.stage.runtime_audio_path = audio.directory;
+
+        load_data.stage.stereo_phrases = audio.channels == 8;
+
+        load_data.stage.tempo = load_data.song.sections.front().tempo;
+
+        load_data.chc_loaded = true;
+    }
+
     LoadingTask make_stage_loading_task( const gamedata::PlayableStageEntry &stage,
         std::function<std::unique_ptr<PikoModule>()> create_cancel_module )
     {
@@ -62,6 +108,28 @@ namespace piko::modules
 
         auto load_data = std::make_shared<StageLoadData>();
         load_data->stage = stage;
+
+        if( stage.custom_song )
+        {
+            task.title = localization::text( "@ui.loading" ) + stage.short_name;
+
+            task.background_asset = task.fallback_background_asset;
+
+            task.background_candidates.clear();
+
+            task.work = [ load_data ]( LoadingProgress &progress )
+            {
+                load_custom_song_stage( *load_data, progress );
+            };
+
+            task.create_next_module = [ load_data ]()
+            {
+                return std::make_unique<StageModule>( std::move( *load_data ) );
+            };
+
+            task.create_cancel_module = std::move( create_cancel_module );
+            return task;
+        }
 
         task.work = [ load_data ]( LoadingProgress &progress )
         {

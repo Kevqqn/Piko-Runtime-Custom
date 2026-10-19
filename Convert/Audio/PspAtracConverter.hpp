@@ -35,9 +35,12 @@ namespace piko::convert
         AudioCompression compression,
         const std::filesystem::path &ffmpeg_executable );
 
+    // Zero keeps the source sample rate or channel count.
     void decode_audio_to_wav( const std::filesystem::path &input_path,
         const std::filesystem::path &output_path,
-        const std::filesystem::path &ffmpeg_executable );
+        const std::filesystem::path &ffmpeg_executable,
+        std::uint32_t sample_rate = 0,
+        std::uint16_t channel_count = 0 );
 
     std::vector<ConvertedAudioCue> convert_psp_atrac_audio( const std::vector<PspAudioSource> &sources,
         const std::filesystem::path &output_directory,

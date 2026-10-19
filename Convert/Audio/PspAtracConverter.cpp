@@ -691,11 +691,13 @@ namespace piko::convert
 
     void decode_audio_to_wav( const std::filesystem::path &input_path,
         const std::filesystem::path &output_path,
-        const std::filesystem::path &ffmpeg_executable )
+        const std::filesystem::path &ffmpeg_executable,
+        std::uint32_t sample_rate,
+        std::uint16_t channel_count )
     {
         std::filesystem::create_directories( output_path.parent_path() );
         std::filesystem::remove( output_path );
-        const std::vector<std::filesystem::path> arguments{
+        std::vector<std::filesystem::path> arguments{
             "-y",
             "-hide_banner",
             "-loglevel",
@@ -706,9 +708,22 @@ namespace piko::convert
             "-1",
             "-vn",
             "-c:a",
-            "pcm_s16le",
-            output_path
+            "pcm_s16le"
         };
+
+        if( sample_rate != 0 )
+        {
+            arguments.push_back( "-ar" );
+            arguments.push_back( std::to_string( sample_rate ) );
+        }
+
+        if( channel_count != 0 )
+        {
+            arguments.push_back( "-ac" );
+            arguments.push_back( std::to_string( channel_count ) );
+        }
+
+        arguments.push_back( output_path );
 
         if( process::run_process( ffmpeg_executable, arguments, { .quiet = true } ) != 0 ||
             !std::filesystem::is_regular_file( output_path ) )

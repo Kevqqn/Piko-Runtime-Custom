@@ -479,6 +479,8 @@ namespace piko::runtime::stage
         judgement_debug_ = {};
 
         score_ = 0;
+        combo_ = 0;
+        max_combo_ = 0;
         result_judgement_counts_.fill( 0 );
         judgement_section_index_ = static_cast<std::size_t>( -1 );
 
@@ -520,6 +522,8 @@ namespace piko::runtime::stage
         config_.filter_charts_by_time = true;
 
         config_.duet_stage = stage.duet_stage;
+
+        config_.ruleset = stage.ruleset;
 
         chart_style_ = stage.portable_visuals ? gamedata::ChartStyle::GitarooManLives : stage.chart_style;
 
@@ -586,6 +590,15 @@ namespace piko::runtime::stage
         else
         {
             sides_ = make_single_player_sides();
+        }
+
+        // Free keeps only the local sides, there is no opponent.
+        if( stage.ruleset == gamedata::StageRuleset::Free )
+        {
+            for( StageSideState &side : sides_ )
+            {
+                side.active = side.active && side.local;
+            }
         }
     }
 
@@ -869,12 +882,19 @@ namespace piko::runtime::stage
         return score_;
     }
 
+    std::uint32_t StageRuntime::combo() const
+    {
+        return combo_;
+    }
+
     StageResultData StageRuntime::result_data( bool won ) const
     {
         StageResultData result{};
         result.score = score_;
 
         result.judgement_counts = result_judgement_counts_;
+
+        result.max_combo = max_combo_;
 
         result.won = won;
 
@@ -2530,7 +2550,17 @@ namespace piko::runtime::stage
                 if( is_attack_like_mode( mode ) )
                 {
                     delta = -value * safe_factor( factors.attack_damage_press );
-                    apply_delta_to_side( opponent_side, delta );
+
+                    if( config_.ruleset == gamedata::StageRuleset::Free )
+                    {
+                        delta = -delta;
+                        apply_delta_to_side( local_side, delta );
+                    }
+                    else
+                    {
+                        apply_delta_to_side( opponent_side, delta );
+                    }
+
                     applied = true;
                 }
                 break;
@@ -2545,7 +2575,12 @@ namespace piko::runtime::stage
                     delta = -hold_value * value * safe_factor( factors.attack_damage_press ) *
                             safe_factor( factors.attack_damage_release );
 
-                    if( delta != 0.0f )
+                    if( delta != 0.0f && config_.ruleset == gamedata::StageRuleset::Free )
+                    {
+                        delta = -delta;
+                        apply_delta_to_side( local_side, delta );
+                    }
+                    else if( delta != 0.0f )
                     {
                         apply_delta_to_side( opponent_side, delta );
                     }
@@ -2674,6 +2709,18 @@ namespace piko::runtime::stage
         }
 
         ++result_judgement_counts_[ static_cast<std::size_t>( grade ) ];
+
+        // Presses and guards build the combo, misses break it. Phrase ends do neither.
+        if( state == 1u || state == 5u )
+        {
+            combo_ = grade == StageResultGrade::Miss ? 0u : combo_ + 1u;
+            max_combo_ = std::max( max_combo_, combo_ );
+        }
+        else if( state == 2u || state == 6u )
+        {
+            combo_ = 0;
+        }
+
         ++judgement_debug_.ssq_action_result_serial;
         judgement_debug_.ssq_action_result_state = state;
 
