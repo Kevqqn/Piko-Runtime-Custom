@@ -22,6 +22,7 @@ namespace piko::filetypes::custom_song::parse
     constexpr float base_speed_factor = 240.0f;
     constexpr double guard_chart_gap_ms = 10000.0;
     constexpr double fallback_tail_ms = 2000.0;
+    constexpr std::uint32_t continuation_stub_samples = 64;
     constexpr double time_epsilon_ms = 0.001;
     constexpr float angle_epsilon_deg = 0.001f;
 
@@ -724,14 +725,19 @@ namespace piko::filetypes::custom_song
         std::vector<chc::Chart> charts;
         charts.reserve( chart.lines.size() + 1 );
 
-        for( const Line &line : chart.lines )
+        for( std::size_t line_index = 0; line_index < chart.lines.size(); ++line_index )
         {
+            const Line &line = chart.lines[ line_index ];
             const std::int64_t start = sample_at( parse::line_start( line ) );
+            const bool continued =
+                line_index + 1 < chart.lines.size() && chart.lines[ line_index + 1 ].continues_previous;
 
             chc::Chart out{};
             out.start_sample = parse::to_u32( start, "line start" );
 
             out.end_sample = parse::to_u32( sample_at( parse::line_end( line ) ), "line end" );
+
+            out.continues_previous = line.continues_previous;
 
             for( std::size_t index = 0; index < line.points.size(); ++index )
             {
@@ -749,6 +755,20 @@ namespace piko::filetypes::custom_song
 
                 fragment.curve = point.curve ? 1u : 0u;
                 out.traces.push_back( fragment );
+            }
+
+            // The last drawn segment of a chart never turns. A short stub past the cut keeps the real last segment
+            // turning toward the next point, so a split line keeps its shape.
+            if( continued )
+            {
+                chc::TraceFragment &cut = out.traces.back();
+                cut.duration_samples = parse::continuation_stub_samples;
+
+                chc::TraceFragment terminator = cut;
+                terminator.start_sample += static_cast<std::int32_t>( parse::continuation_stub_samples );
+
+                terminator.duration_samples = 0;
+                out.traces.push_back( terminator );
             }
 
             for( const Phrase &phrase : line.phrases )

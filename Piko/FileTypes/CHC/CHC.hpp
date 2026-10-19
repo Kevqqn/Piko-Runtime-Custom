@@ -91,6 +91,9 @@ namespace piko::filetypes::chc
         std::uint32_t start_sample = 0;
         std::uint32_t end_sample = 0;
 
+        // Runtime only, never in retail data. The trace line visually continues the previous chart's line.
+        bool continues_previous = false;
+
         std::vector<TraceFragment> traces;
         std::vector<PhraseFragment> phrases;
         std::vector<GuardFragment> guards;

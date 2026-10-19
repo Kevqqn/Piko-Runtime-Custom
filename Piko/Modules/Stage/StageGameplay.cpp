@@ -58,6 +58,47 @@
 
 namespace piko::modules
 {
+    // A continuation chart is anchored so its first point meets the previous line's last point until it starts.
+    runtime::stage::TracePosition continued_chart_position( const runtime::stage::RuntimeSection &section,
+        std::size_t chart_index,
+        std::int64_t section_sample,
+        std::size_t depth = 0 )
+    {
+        const runtime::stage::RuntimeChart &chart = section.charts[ chart_index ];
+        const std::vector<runtime::stage::TraceSample> &samples = chart.trace_samples;
+        const std::int64_t chart_sample = section_sample - static_cast<std::int64_t>( chart.chart->start_sample );
+
+        if( chart.chart->continues_previous && depth < 64 && samples.size() >= 2 &&
+            chart_sample < samples.front().chart_sample )
+        {
+            for( std::size_t previous = chart_index; previous-- > 0; )
+            {
+                const runtime::stage::RuntimeChart &candidate = section.charts[ previous ];
+
+                if( candidate.chart == nullptr || candidate.trace_samples.size() < 2 )
+                {
+                    continue;
+                }
+
+                const runtime::stage::TracePosition anchor =
+                    continued_chart_position( section, previous, section_sample, depth + 1 );
+
+                // Position of the previous line at this chart's start, its stub past the cut is ignored.
+                const runtime::stage::TracePosition last = runtime::stage::trace_position_at( candidate.trace_samples,
+                    static_cast<std::int64_t>( chart.chart->start_sample ) -
+                        static_cast<std::int64_t>( candidate.chart->start_sample ) );
+
+                const runtime::stage::TraceSample &first = samples.front();
+
+                return runtime::stage::TracePosition{ .x = first.x + anchor.x - last.x,
+                    .y = first.y + anchor.y - last.y,
+                    .angle = anchor.angle };
+            }
+        }
+
+        return runtime::stage::visual_trace_position_at( samples, chart_sample );
+    }
+
     std::uint32_t StageModule::retail_note_flash_random( std::uint32_t &state )
     {
         // sub_1425E8
@@ -474,6 +515,26 @@ namespace piko::modules
             return mode;
         };
 
+        const auto chart_view_position = [ & ]( const runtime::stage::ActiveChart &active_chart,
+                                             const std::vector<runtime::stage::TraceSample> &samples )
+        {
+            if( active_chart.chart != nullptr && active_chart.chart->continues_previous && runtime_.has_song() &&
+                state.section_index < runtime_.runtime_song().sections.size() )
+            {
+                const runtime::stage::RuntimeSection &section = runtime_.runtime_song().sections[ state.section_index ];
+
+                for( std::size_t index = 0; index < section.charts.size(); ++index )
+                {
+                    if( section.charts[ index ].chart == active_chart.chart )
+                    {
+                        return continued_chart_position( section, index, state.section_sample );
+                    }
+                }
+            }
+
+            return runtime::stage::visual_trace_position_at( samples, active_chart.chart_sample );
+        };
+
         const auto draw_chart_list = [ & ]( const std::vector<runtime::stage::ActiveChart> &draw_charts,
                                          const ChartDrawOptions &options ) -> bool
         {
@@ -485,8 +546,7 @@ namespace piko::modules
                 const std::vector<runtime::stage::TraceSample> &samples =
                     active_chart.trace_samples != nullptr ? *active_chart.trace_samples : empty_samples;
 
-                const runtime::stage::TracePosition current_position =
-                    runtime::stage::visual_trace_position_at( samples, active_chart.chart_sample );
+                const runtime::stage::TracePosition current_position = chart_view_position( active_chart, samples );
 
                 std::vector<runtime::stage::TraceRenderPoint> points;
 
